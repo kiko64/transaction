@@ -100,7 +100,7 @@ class _TransactionPageState extends State<TransactionPage> {
         body: FutureBuilder(
           future: this
               .handler
-              .retrieveTransactions(_queryText, criterio), // kiko MySql
+              .retrieveTransactionsMySql(_queryText, criterio), // kiko MySql
           builder: (BuildContext context,
               AsyncSnapshot<List<Transactiox>> snapshot) {
             if (snapshot.hasData) {
