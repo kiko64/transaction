@@ -314,7 +314,7 @@ class _TransactionPageState extends State<TransactionPage> {
                     onPressed: () async {
                       Transactiox actual = Transactiox(
                           ejecutar: 0,
-                          fecha: '2022-03-01',
+                          fecha: DateTime.now(),
                           usuario: 'Ocobo',
                           seguimiento: 12601,
                           agenda: 0,

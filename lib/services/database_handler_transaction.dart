@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:mysql1/mysql1.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -226,10 +228,7 @@ class DatabaseHandlerTransaction {
 //    await db.query('m_ejecutar e, m_registro s',
 //        where: '$condicion',
 //        orderBy: 'e.ejecutar' );
-    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-    print(queryResult);
 
-    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     return queryResult.map((e) => Transactiox.fromMap(e)).toList();
 
 //    List<Map> maps = await db.query(tableTodo,
@@ -395,15 +394,24 @@ class DatabaseHandlerTransaction {
     print(' ');
     print('(3/3) Pasando datos MySql...');
 
-    final List<Map<String, Object?>> queryResult =
-        await connection.query(consulta);
+    var queryResult = await connection.query(consulta);
+
     await connection
         .close(); // Error: type Result is not a subtype of type List<Map<String, Object>>
     // Como paso el query => List<Map<String, Object>>
+    // final List<Map<String, Object?>> queryResult = await connection.query(consulta);
 
     print('(3/3) YA CASI:::: Pasando datos MySql...');
+    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
 
-    return queryResult.map((e) => Transactiox.fromMap(e)).toList();
+    print(queryResult);
+
+    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+    List<Transactiox> queryResultMap = queryResult
+        .map((queryResult) => Transactiox.fromMap(queryResult.fields))
+        .toList();
+
+    return queryResultMap;
   }
 
   Future insertUsingHelperMySql(newData) async {
