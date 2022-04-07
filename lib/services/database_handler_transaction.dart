@@ -407,9 +407,11 @@ class DatabaseHandlerTransaction {
     print(queryResult);
 
     print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
-    List<Transactiox> queryResultMap = queryResult
-        .map((queryResult) => Transactiox.fromMap(queryResult.fields))
-        .toList();
+    List<Transactiox> queryResultMap =
+        queryResult.map((mapquery) => Transactiox.fromMap(mapquery)).toList();
+    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+
+    print(queryResultMap);
 
     return queryResultMap;
   }

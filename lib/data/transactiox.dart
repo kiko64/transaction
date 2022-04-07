@@ -1,7 +1,7 @@
 class Transactiox {
   final int? ejecutar; // dato requerido
 
-  late DateTime fecha;
+  late String fecha;
   late String usuario;
   late int? seguimiento;
   late int? agenda;
