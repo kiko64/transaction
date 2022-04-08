@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +20,6 @@ int _page = 0;
 late Record control;
 
 class TransactionPage extends StatefulWidget {
-
   @override
   TransactionPage({Key? key, required this.title}) : super(key: key);
   final String title;
@@ -30,7 +28,6 @@ class TransactionPage extends StatefulWidget {
 }
 
 class _TransactionPageState extends State<TransactionPage> {
-
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   late SearchBar searchBar;
   late DatabaseHandlerTransaction handler;
@@ -67,13 +64,11 @@ class _TransactionPageState extends State<TransactionPage> {
 
 //        onCleared: () {print("************************* Search bar has been cleared");},
 //        onClosed: () {print("************************* Search bar has been closed");}
-
     );
   }
 
   @override
   void initState() {
-
     _cargar();
     super.initState();
     this.handler = DatabaseHandlerTransaction();
@@ -89,7 +84,6 @@ class _TransactionPageState extends State<TransactionPage> {
     print(control.descripcion.toString());
   }
 
-
   void _refrescar(String query) {
     _queryText = query;
     setState(() {
@@ -99,18 +93,21 @@ class _TransactionPageState extends State<TransactionPage> {
 
   @override
   Widget build(BuildContext context) {
-
     GlobalKey _bottomNavigationKey = GlobalKey();
 
     return Scaffold(
         appBar: searchBar.build(context),
         body: FutureBuilder(
-          future: this.handler.retrieveTransactions( _queryText, criterio ),  // kiko MySql
-          builder: (BuildContext context, AsyncSnapshot<List<Transactiox>> snapshot) {
+          future: this
+              .handler
+              .retrieveTransactionsMySql(_queryText, criterio), // kiko MySql
+          builder: (BuildContext context,
+              AsyncSnapshot<List<Transactiox>> snapshot) {
             if (snapshot.hasData) {
               return ListView.builder(
-                padding: EdgeInsets.only(top: 5, left: 5, right: 5, bottom: 5 ),
-                itemCount: snapshot.data?.length, // snapshot.data?.length = soccerPlayers.length,
+                padding: EdgeInsets.only(top: 5, left: 5, right: 5, bottom: 5),
+                itemCount: snapshot.data
+                    ?.length, // snapshot.data?.length = soccerPlayers.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Dismissible(
                     direction: DismissDirection.endToStart,
@@ -122,13 +119,15 @@ class _TransactionPageState extends State<TransactionPage> {
                     ),
                     key: ValueKey<int>(snapshot.data![index].ejecutar!),
                     onDismissed: (DismissDirection direction) async {
-
                       var newData = {
                         "ejecutar": snapshot.data![index].ejecutar.toString(),
-                        "observacion": snapshot.data![index].observacion.toString().trim() + " Actividad cancelada",
+                        "observacion": snapshot.data![index].observacion
+                                .toString()
+                                .trim() +
+                            " Actividad cancelada",
                         "seguimiento": 12605
                       };
-                      print( newData );
+                      print(newData);
                       await this.handler.updateUsingHelper(newData);
 //                      _refrescar( _queryText );
 
@@ -136,32 +135,51 @@ class _TransactionPageState extends State<TransactionPage> {
                       setState(() {
                         snapshot.data!.remove(snapshot.data![index]);
                       });
-
                     },
                     child: Card(
                         elevation: 3.0,
                         child: ListTile(
-                          contentPadding: EdgeInsets.fromLTRB(8, 0, 8, 0),  // L, U, R, D
-                          title: Text(snapshot.data![index].ejecutar.toString()
-                              + '- ' + snapshot.data![index].desAgenda.toString()
-                              + ' (' + snapshot.data![index].desSeguimiento.toString() + ')',
-                            style: TextStyle( fontWeight: FontWeight.bold, fontSize: 15)
-                          ),
+                          contentPadding:
+                              EdgeInsets.fromLTRB(8, 0, 8, 0), // L, U, R, D
+                          title: Text(
+                              snapshot.data![index].ejecutar.toString() +
+                                  '- ' +
+                                  snapshot.data![index].desAgenda.toString() +
+                                  ' (' +
+                                  snapshot.data![index].desSeguimiento
+                                      .toString() +
+                                  ')',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 15)),
 
                           subtitle: RichText(
                             text: TextSpan(
                               children: <TextSpan>[
                                 TextSpan(
-                                    text: snapshot.data![index].desDocumento.toString().trim() + ', ' +
-                                          snapshot.data![index].fecha.toString().trim(),
-                                    style: TextStyle(color: Colors.black, fontSize: 18)
-                                ),
+                                    text: snapshot.data![index].desDocumento
+                                            .toString()
+                                            .trim() +
+                                        ', ' +
+                                        snapshot.data![index].fecha
+                                            .toString()
+                                            .trim(),
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 18)),
                                 TextSpan(
 //                                    text: ' ( \$ ' + NumberFormat.currency(locale: 'eu', symbol: '').format(snapshot.data![index].valor) + ')',
-                                    text: ' ' + NumberFormat.currency(locale: 'eu', symbol: '').format(snapshot.data![index].valor),
-                                    style: int.parse(snapshot.data![index].parAgenda0.toString()) < 33008
-                                        ? TextStyle(color: Colors.teal, fontSize: 18)
-                                        : TextStyle(color: Colors.red, fontSize: 18)),
+                                    text: ' ' +
+                                        NumberFormat.currency(
+                                                locale: 'eu', symbol: '')
+                                            .format(
+                                                snapshot.data![index].valor),
+                                    style: int.parse(snapshot
+                                                .data![index].parAgenda0
+                                                .toString()) <
+                                            33008
+                                        ? TextStyle(
+                                            color: Colors.teal, fontSize: 18)
+                                        : TextStyle(
+                                            color: Colors.red, fontSize: 18)),
                               ],
                             ),
                           ),
@@ -184,20 +202,18 @@ class _TransactionPageState extends State<TransactionPage> {
                             var route = MaterialPageRoute(
                               builder: (BuildContext context) => TransactionWidget(
                                   snapshot.data![index],
-                                  'Transacción No.' + snapshot.data![index].ejecutar.toString()
-                              ), // Llamar la forma de toma de lectura
+                                  'Transacción No.' +
+                                      snapshot.data![index].ejecutar
+                                          .toString()), // Llamar la forma de toma de lectura
                             );
                             await Navigator.of(context).push(route);
-                            _refrescar( _queryText );
+                            _refrescar(_queryText);
                           },
-                        )
-
-                    ),
+                        )),
                   );
                 },
               );
-            }
-            else if (snapshot.hasError) {
+            } else if (snapshot.hasError) {
               return Text('${snapshot.error}');
             }
             return SizedBox(
@@ -208,7 +224,6 @@ class _TransactionPageState extends State<TransactionPage> {
             );
           },
         ),
-
         bottomNavigationBar: CurvedNavigationBar(
           key: _bottomNavigationKey,
           index: _page,
@@ -257,74 +272,84 @@ class _TransactionPageState extends State<TransactionPage> {
             _page = index;
             switch (index) {
               case 0:
-                criterio = 0; break;
+                criterio = 0;
+                break;
               case 1:
-                criterio = 12601; break;
+                criterio = 12601;
+                break;
               case 2:
-                criterio = 12602; break;
+                criterio = 12602;
+                break;
               case 3:
-                criterio = 12603; break;
+                criterio = 12603;
+                break;
               case 4:
-                criterio = 12604; break;
+                criterio = 12604;
+                break;
               case 5:
-                criterio = 12605; break;
+                criterio = 12605;
+                break;
               default:
-                criterio = 0; break;
+                criterio = 0;
+                break;
             }
-            _refrescar( _queryText );
+            _refrescar(_queryText);
 //            cubit.getAll(
 //                query: state.lastSearch,
 //                status: codeSelectFilter(index),
 //                clean: true);
           },
         ),
-
         drawer: MenuLateral(),
-
-        floatingActionButton:Row(
+        floatingActionButton: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-
               SizedBox(
 //                height:46,
                 child: FloatingActionButton(
                     heroTag: null,
                     child: Icon(Icons.add),
                     backgroundColor: Colors.teal,
-                    onPressed: ()  async {
-
-                      Transactiox actual = Transactiox(ejecutar: 0, fecha: '2022-03-01', usuario: 'Ocobo',
-                          seguimiento: 12601, agenda: 0, documento: 0, cuenta: 0,
-                          valor: 10000, observacion: 'Prueba', registro: '', mascara: 1,
-                          archivo0: '', archivo1: '', archivo2: '',archivo3: '',
+                    onPressed: () async {
+                      Transactiox actual = Transactiox(
+                          ejecutar: 0,
+                          fecha: '2022-03-01',
+                          usuario: 'Ocobo',
+                          seguimiento: 12601,
+                          agenda: 0,
+                          documento: 0,
+                          cuenta: 0,
+                          valor: 10000,
+                          observacion: 'Prueba',
+                          registro: '',
+                          mascara: 1,
+                          archivo0: '',
+                          archivo1: '',
+                          archivo2: '',
+                          archivo3: '',
                           desAgenda: '',
-                          parAgenda0: '0', parAgenda1: '0', parAgenda2: '0', parAgenda3: '1',
+                          parAgenda0: '0',
+                          parAgenda1: '0',
+                          parAgenda2: '0',
+                          parAgenda3: '1',
                           desMascara: '',
                           desDocumento: '',
                           desCuenta: '',
-                          desSeguimiento: 'Preparación'
-                      );
+                          desSeguimiento: 'Preparación');
 
                       var route = MaterialPageRoute(
                         builder: (BuildContext context) => TransactionWidget(
                             actual,
-                            'Adicionar transacción'
-                        ), // Llamar la forma de toma de lectura
+                            'Adicionar transacción'), // Llamar la forma de toma de lectura
                       );
                       await Navigator.of(context).push(route);
-                      _refrescar( _queryText );
+                      _refrescar(_queryText);
 //                      _refrescar('');
-                    }
-                ),
+                    }),
               ),
-
-            ]
-        )
-
-    );
+            ]));
   }
-
 }
 
 class MenuLateral extends StatelessWidget {
@@ -333,15 +358,22 @@ class MenuLateral extends StatelessWidget {
     return new Drawer(
       child: ListView(
         children: <Widget>[
-          Text('', textScaleFactor: 1.8,),
-          Text('         OcoboSoft', textScaleFactor: 1.8,),
-          Text('              Versión 1.05', textScaleFactor: 1.2,),
-
+          Text(
+            '',
+            textScaleFactor: 1.8,
+          ),
+          Text(
+            '         OcoboSoft',
+            textScaleFactor: 1.8,
+          ),
+          Text(
+            '              Versión 1.05',
+            textScaleFactor: 1.2,
+          ),
           Padding(
             child: Image.asset("assets/images/icon.png"),
             padding: EdgeInsets.all(66.0),
           ),
-
           new ListTile(
             title: Text(
               "Acciones",
@@ -353,14 +385,15 @@ class MenuLateral extends StatelessWidget {
             ),
             onTap: () async {
               var route = MaterialPageRoute(
-                builder: (BuildContext context) => AccionesPage(control: control,), // Llamar la forma de auxiliares
+                builder: (BuildContext context) => AccionesPage(
+                  control: control,
+                ), // Llamar la forma de auxiliares
               );
               await Navigator.of(context).push(route);
               _queryText = '';
 //              _refrescar('');
             },
           ),
-
           new ListTile(
             title: Text(
               "Configuración",
@@ -374,7 +407,6 @@ class MenuLateral extends StatelessWidget {
 //              Navigator.pushNamed(context, routes.ServicioPage);
             },
           ),
-
           new ListTile(
             title: Text(
               "Cerrar sesión",
@@ -395,4 +427,3 @@ class MenuLateral extends StatelessWidget {
     );
   }
 }
-
