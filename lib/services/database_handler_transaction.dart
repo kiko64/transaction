@@ -402,7 +402,7 @@ class DatabaseHandlerTransaction {
     // final List<Map<String, Object?>> queryResult = await connection.query(consulta);
 
     print('(3/3) YA CASI:::: Pasando datos MySql...');
-    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+    print('..................................');
 
     print(queryResult);
 
