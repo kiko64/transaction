@@ -1,18 +1,16 @@
-import 'dart:convert';
-
 import 'package:mysql1/mysql1.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:transaccion/utils/globals.dart' as globals;
 import 'package:transaccion/data/transactiox.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:transaccion/data/insert_transaction.dart';
-
-import 'database_action.dart';
 
 class DatabaseHandlerTransaction {
   Future<Database> initializeDB() async {
-    late DatabaseHandlerTransaction handler;
-
     String path = await getDatabasesPath();
     return openDatabase(
       join(path, 'transaccion.db'),
@@ -48,13 +46,11 @@ class DatabaseHandlerTransaction {
             'archivo0 TEXT,archivo1 TEXT,' +
             'archivo2 TEXT,archivo3 TEXT)');
 
-        print('1/4');
         await database.execute(
-            "insert into m_registro values(1, 700, 70001, '200.118.224.78|3306|root|Juan2008|prueba|', '0', '', '', '')");
+            "insert into m_registro values(1, 700, 70001, '200.118.224.78|3306|root|Juan2008|prueba|', '0', '', '', '')"); // Ya
         await database.execute(
             "insert into m_registro values(2, 700, 70002, '1', '0', '', '', '')");
 
-        print('2/4');
         await database.execute(
             "insert into m_registro values(3,126,12601,'Preparación','0','','','')");
         await database.execute(
@@ -66,7 +62,6 @@ class DatabaseHandlerTransaction {
         await database.execute(
             "insert into m_registro values(7,126,12605,'Cancelada','0','','','')");
 
-        print('3/4');
         await database.execute(
             "insert into m_registro values(8,210,21001,'Cédula de ciudadanía','CC','','','')");
         await database.execute(
@@ -76,7 +71,6 @@ class DatabaseHandlerTransaction {
         await database.execute(
             "insert into m_registro values(11,210,21016,'General','GE','','','')");
 
-        print('4/4');
         await database.execute(
             "insert into m_registro values(12,10301,895,'Cargar recaudo GanaGana','33003','0','0','0')");
         await database.execute(
@@ -186,10 +180,10 @@ class DatabaseHandlerTransaction {
     }
     condicion = 'e.seguimiento = s.registro and ' + condicion;
 
-    print('******************************Condición: $condicion');
-    final Database db = await initializeDB();
+    print('retrieveTransaction: Condición - $condicion');
+    final Database connection = await initializeDB();
 
-    final List<Map<String, Object?>> queryResult = await db.query(
+    final List<Map<String, Object?>> queryResult = await connection.query(
       'm_ejecutar e, m_registro s',
       where: '$condicion',
     );
@@ -197,12 +191,13 @@ class DatabaseHandlerTransaction {
     return queryResult.map((e) => Transactiox.fromMap(e)).toList();
   }
 
-  Future<List<Transactiox>> retrieveTransactions(
+  Future<List<Transactiox>> retrieveTransactionsSqlLite(
       String condicion, int criterio) async {
     condicion = armarCondicion(condicion);
-    print('$condicion');
+    print('(1/3) retrieveTransactions: condicion - ${condicion}');
 
-    print('$criterio'); // Es para la seleeción segun el m_ejecutar.seguimiento
+    print(
+        '(2/3) retrieveTransactions: criterio - ${criterio}'); // Es para la seleeción segun el m_ejecutar.seguimiento
     if (criterio != 0)
       condicion = condicion + ' and e.seguimiento = ' + criterio.toString();
 
@@ -220,18 +215,25 @@ class DatabaseHandlerTransaction {
                 'where ' +
             condicion +
             ' ' +
-            'order by e.ejecutar';
+            'order by e.ejecutar desc';
 
-    final Database db = await initializeDB();
-    final List<Map<String, Object?>> queryResult = await db.rawQuery(consulta);
+    final Database connection = await initializeDB();
 
-//    await db.query('m_ejecutar e, m_registro s',
+    var queryResult = await connection.rawQuery(consulta);
+    print('(3/3) retrieveTransactions: queryResult - ${queryResult}');
+
+//    Hace lo mismo que lo anterior var ...
+//    final List<Map<String, Object?>> queryResult = await connection.rawQuery(consulta);
+//    print('(3/3) retrieveTransactions: queryResult - ${queryResult}');
+
+    await connection.close();
+    return queryResult.map((e) => Transactiox.fromMap(e)).toList();
+
+//    await connection.query('m_ejecutar e, m_registro s',
 //        where: '$condicion',
 //        orderBy: 'e.ejecutar' );
 
-    return queryResult.map((e) => Transactiox.fromMap(e)).toList();
-
-//    List<Map> maps = await db.query(tableTodo,
+//    List<Map> maps = await connection.query(tableTodo,
 //        columns: [columnId, columnDone, columnTitle],
 //        where: '$columnId = ?',
 //        whereArgs: [ejecutar]);
@@ -291,29 +293,29 @@ class DatabaseHandlerTransaction {
   Future<int> insertTransaction(
       List<InsertTransaction> listTransactions) async {
     int result = 0;
-    final Database db = await initializeDB();
+    final Database connection = await initializeDB();
     for (var user in listTransactions) {
-      result = await db.insert('m_ejecutar', user.toMap());
+      result = await connection.insert('m_ejecutar', user.toMap());
     }
     return result;
   }
 
   Future<void> ejecutar(String sentencia) async {
-    final db = await initializeDB();
-    await db.execute(sentencia);
+    final connection = await initializeDB();
+    await connection.execute(sentencia);
   }
 
-  Future insertUsingHelper(newData) async {
-    print(newData);
-    final db = await initializeDB();
-    var res = await db.insert('m_ejecutar', newData);
+  Future insertUsingHelperSqlLite(newData) async {
+    print('insertUsingHelperSqlLite: newData ${newData}');
+    final connection = await initializeDB();
+    var res = await connection.insert('m_ejecutar', newData);
     return res;
   }
 
-  Future updateUsingHelper(newData) async {
-    print(newData);
-    final db = await initializeDB();
-    var res = await db.update(
+  Future updateUsingHelperSqlLite(newData) async {
+    print('updateUsingHelper: newData ${newData}');
+    final connection = await initializeDB();
+    var res = await connection.update(
       'm_ejecutar',
       newData,
       where: "ejecutar = ? ",
@@ -323,38 +325,57 @@ class DatabaseHandlerTransaction {
   }
 
   Future<void> deleteTransaction(int ejecutar) async {
-    final db = await initializeDB();
+    final connection = await initializeDB();
     if (ejecutar != 0) {
-      await db.delete(
+      await connection.delete(
         'm_ejecutar',
         where: "ejecutar = ? ",
         whereArgs: [ejecutar],
       );
     } else {
-      await db.delete(
+      await connection.delete(
         'm_ejecutar',
       );
     }
   }
 
-  Future<dynamic> initializeDBMySql(String condicion) async {
-    Data dataReg;
-    dataReg = await getRegistro(condicion) as Data;
+  Future<dynamic> initializeDBMySql() async {
+//    Data dataReg;
+//    dataReg = await getRegistro(condicion) as Data;
+//    Data dataReg;
+//    dataReg = await getRegistro(condicion) as Data;
 
-    ConnectionSettings settings = new ConnectionSettings(
-      host: dataReg.p0,
-      port: int.parse(dataReg.p1),
-      user: dataReg.p2,
-      password: dataReg.p3,
-      db: dataReg.p4,
-    );
+    if (kIsWeb) {
+      globals.host = "200.118.224.78";
+      globals.port = 3306;
+      globals.userDB = "root";
+      globals.passwordDB = "Juan2008";
+      globals.dataBase = "prueba";
+    }
+    ConnectionSettings settings = kIsWeb
+        ? ConnectionSettings(
+            host: 'http://localhost:52594',
+            port: 3306,
+            user: "root",
+            password: "Juan2008",
+            db: "prueba",
+          )
+        : ConnectionSettings(
+            host: globals.host,
+            port: globals.port,
+            user: globals.userDB,
+            password: globals.passwordDB,
+            db: globals.dataBase,
+          );
 
-    print('(1/2) Iniciando conexión MySql...');
+    print('(1/2) initializeDBMySql: Iniciando conexión MySql');
     var connection;
     try {
-      print('(2/2) Conectando MySql...');
+      print('(2/2) initializeDBMySql: Conectando a MySql');
       connection = await MySqlConnection.connect(settings);
     } catch (e) {
+      print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+       print('Unable to connect.' + e.toString());
       print('Unable to connect.' + e.toString());
     }
     return connection;
@@ -363,15 +384,17 @@ class DatabaseHandlerTransaction {
   Future<List<Transactiox>> retrieveTransactionsMySql(
       String condicion, int criterio) async {
     condicion = armarCondicion(condicion);
-    print('$condicion');
+    print('(1/4) retrieveTransactionsMySql: condicion - ${condicion}');
 
-    print('$criterio'); // Es para la seleeción segun el m_ejecutar.seguimiento
+    print(
+        '(2/4) retrieveTransactionsMySql: criterio - $criterio'); // Es para la seleeción segun el m_ejecutar.seguimiento
     if (criterio != 0)
       condicion = condicion + ' and e.seguimiento = ' + criterio.toString();
 
     String consulta =
-        "SELECT e.ejecutar, e.fecha, e.usuario, e.seguimiento, e.agenda, e.documento, " +
-            "e.cuenta, e.valor, e.observacion, e.registro, e.mascara, " +
+        "SELECT e.ejecutar, DATE_FORMAT(e.fecha, '%Y-%m-%d')AS fecha, e.usuario, " + // kiko
+            "e.seguimiento, e.agenda, e.documento, " +
+            "e.cuenta, e.valor, e.observacion, ' ' AS registro, e.mascara, " + // kiko
             "e.archivo0, e.archivo1, e.archivo2, e.archivo3, " +
             "a.descripcion as desAgenda, " +
             "a.parametro0 as parAgenda0, a.parametro1 as parAgenda1, a.parametro2 as parAgenda2, a.parametro3 as parAgenda3, " +
@@ -382,38 +405,13 @@ class DatabaseHandlerTransaction {
             "from g_ejecutar e, m_registro a, m_registro m, m_registro d, m_registro c, m_registro s " +
             "where " +
             condicion +
-            ' ' +
-            "order by e.ejecutar";
+            " order by e.ejecutar desc";
 
-    print(' ');
-    print(consulta);
-    print(' ');
-
-    final connection = await initializeDBMySql('70001 and tabla = 700');
-
-    print(' ');
-    print('(3/3) Pasando datos MySql...');
-
-    var queryResult = await connection.query(consulta);
-
-    await connection
-        .close(); // Error: type Result is not a subtype of type List<Map<String, Object>>
-    // Como paso el query => List<Map<String, Object>>
-    // final List<Map<String, Object?>> queryResult = await connection.query(consulta);
-
-    print('(3/3) YA CASI:::: Pasando datos MySql...');
-    print('..................................');
-
-    print(queryResult);
-
-    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
-    List<Transactiox> queryResultMap =
-        queryResult.map((mapquery) => Transactiox.fromMap(mapquery)).toList();
-    print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
-
-    print(queryResultMap);
-
-    return queryResultMap;
+    print('(3/4) retrieveTransactionsMySql: consulta - ${consulta}');
+    final List<Transactiox> queryResult =
+        await retrieveTransactionsMix(consulta);
+    print('(4/4) retrieveTransactionsMySql: queryResult - ${queryResult}');
+    return queryResult.toList();
   }
 
   Future insertUsingHelperMySql(newData) async {
@@ -452,60 +450,107 @@ class DatabaseHandlerTransaction {
         newData['archivo3'] +
         "') ";
 
-    print(' ');
-    print(cadena);
-    print(' ');
+    print('insertUsingHelperMySql: cadena - ${cadena}');
 
-    var connection = await initializeDBMySql('70001 and tabla = 700');
+    var connection = await initializeDBMySql(); // Ya
     var res = await connection.query(cadena);
     await connection.close(); // Finally, close the connection
+
+    ImagesTransaction images;
+
+    if (newData['archivo0'].length > 0) {
+      images = ImagesTransaction(
+        base64: base64Encode(
+            File(newData['archivo0'].toString()).readAsBytesSync()),
+        filePath: '../actor/${newData['archivo0'].toString().split('/').last}',
+      );
+      print(
+          'insertUsingHelperMySql: images.base0 - ${images.base64.toString()}');
+      print(
+          'insertUsingHelperMySql: images.file0 - ${images.filePath.toString()}');
+//      uploadImage(images);
+    }
+    if (newData['archivo1'].trim().length > 1) {
+      images = ImagesTransaction(
+        base64: base64Encode(
+            File(newData['archivo1'].toString()).readAsBytesSync()),
+        filePath: '../actor/${newData['archivo1'].toString().split('/').last}',
+      );
+    }
+    if (newData['archivo2'].trim().length > 2) {
+      images = ImagesTransaction(
+        base64: base64Encode(
+            File(newData['archivo2'].toString()).readAsBytesSync()),
+        filePath: '../actor/${newData['archivo2'].toString().split('/').last}',
+      );
+    }
+    if (newData['archivo3'].trim().length > 3) {
+      images = ImagesTransaction(
+        base64: base64Encode(
+            File(newData['archivo3'].toString()).readAsBytesSync()),
+        filePath: '../actor/${newData['archivo3'].toString().split('/').last}',
+      );
+    }
 
     return res;
   }
 
   Future updateUsingHelperMySql(newData) async {
-    String cadena = "UPDATE g_ejecutar set " +
-        "fecha = '" +
-        newData['fecha'] +
-        "', " +
-        "seguimiento = " +
-        newData['seguimiento'].toString() +
-        ", " +
-        "agenda = " +
-        newData['agenda'].toString() +
-        ", " +
-        "documento = " +
-        newData['documento'].toString() +
-        ", " +
-        "cuenta = " +
-        newData['cuenta'].toString() +
-        ", " +
-        "valor = " +
-        newData['valor'].toString() +
-        ", " +
-        "observacion = '" +
-        newData['observacion'] +
-        "', " +
-        "mascara = " +
-        newData['mascara'].toString() +
-        ", " +
-        "archivo0 = '" +
-        newData['archivo0'] +
-        "', " +
-        "archivo1 = '" +
-        newData['archivo1'] +
-        "', " +
-        "archivo2 = '" +
-        newData['archivo2'] +
-        "', " +
-        "archivo3 = '" +
-        newData['archivo3'] +
-        "' " +
-        "where ejecutar = " +
-        newData['ejecutar'].toString();
-    print(cadena);
+    String cadena;
+    if (newData['agenda'] == null)
+      cadena = "UPDATE g_ejecutar set " +
+          "seguimiento = " +
+          newData['seguimiento'].toString() +
+          ", " +
+          "observacion = '" +
+          newData['observacion'] +
+          "' " +
+          "where ejecutar = " +
+          newData['ejecutar'].toString();
+    else
+      cadena = "UPDATE g_ejecutar set " +
+          "fecha = '" +
+          newData['fecha'] +
+          "', " +
+          "seguimiento = " +
+          newData['seguimiento'].toString() +
+          ", " +
+          "agenda = " +
+          newData['agenda'].toString() +
+          ", " +
+          "documento = " +
+          newData['documento'].toString() +
+          ", " +
+          "cuenta = " +
+          newData['cuenta'].toString() +
+          ", " +
+          "valor = " +
+          newData['valor'].toString() +
+          ", " +
+          "observacion = '" +
+          newData['observacion'] +
+          "', " +
+          "mascara = " +
+          newData['mascara'].toString() +
+          ", " +
+          "archivo0 = '" +
+          newData['archivo0'] +
+          "', " +
+          "archivo1 = '" +
+          newData['archivo1'] +
+          "', " +
+          "archivo2 = '" +
+          newData['archivo2'] +
+          "', " +
+          "archivo3 = '" +
+          newData['archivo3'] +
+          "' " +
+          "where ejecutar = " +
+          newData['ejecutar'].toString();
 
-    var connection = await initializeDBMySql('70001 and tabla = 700');
+    print('updateUsingHelperMySql: cadena - ${cadena}');
+
+    var connection = await initializeDBMySql(); // Ya
     var res = await connection.query(cadena);
     await connection.close(); // Finally, close the connection
 
@@ -523,12 +568,92 @@ class DatabaseHandlerTransaction {
         "where ejecutar = " +
         newData['ejecutar'].toString() +
         " and seguimiento = 12601";
-    print(cadena);
 
-    var connection = await initializeDBMySql('70001 and tabla = 700');
+    print('deleteUsingHelperMySql: cadena - ${cadena}');
+
+    var connection = await initializeDBMySql(); // Ya
     var res = await connection.query(cadena);
     await connection.close(); // Finally, close the connection
 
     return res;
   }
+
+  Future<dynamic> retrieveTransactionsMix(String consulta) async {
+    print('(1/3) retrieveTransactionsMix: instanciando MySql');
+    var connection = await initializeDBMySql(); // Ya
+    var queryResult = await connection.query(consulta);
+    print(
+        '(2/4) retrieveTransactionsMix: queryResult - ${queryResult}'); // ${row[0]}  ${row[1]}
+
+    final List<Transactiox>? myList = [];
+    for (var row in queryResult) {
+      final Transactiox myTransaction = Transactiox(
+          ejecutar: row['ejecutar'],
+          fecha: row['fecha'],
+          usuario: row['usuario'],
+          seguimiento: row['seguimiento'],
+          agenda: row['agenda'],
+          documento: row['documento'],
+          cuenta: row['cuenta'],
+          valor: row['valor'],
+          observacion: row['observacion'],
+          registro: row['registro'],
+          mascara: row['mascara'],
+          archivo0: row['archivo0'],
+          archivo1: row['archivo1'],
+          archivo2: row['archivo2'],
+          archivo3: row['archivo3'],
+          desAgenda: row['desAgenda'],
+          parAgenda0: row['parAgenda0'],
+          parAgenda1: row['parAgenda1'],
+          parAgenda2: row['parAgenda2'],
+          parAgenda3: row['parAgenda3'],
+          desMascara: row['desMascara'],
+          desDocumento: row['desDocumento'],
+          desCuenta: row['desCuenta'],
+          desSeguimiento: row['desSeguimiento']);
+
+      print(
+          '(3/4) retrieveTransactionsMix: myTransaction - ${myTransaction.toString()}'); // ${row[0]}  ${row[1]}
+      myList!.add(myTransaction);
+    }
+    await connection.close();
+    print(
+        '(4/4) retrieveTransactionsMix: Mostrando myList - ${myList.toString()}');
+    return myList;
+  }
+
+  Future<List<Transactiox>> retrieveTransactions(
+      String condicion, int criterio) async {
+    print('retrieveTransactions - globals.instance - ${globals.instance}');
+    if (globals.instance == 'Local')
+      return await retrieveTransactionsSqlLite(condicion, criterio);
+    else
+      return await retrieveTransactionsMySql(condicion, criterio);
+  }
+
+  Future updateUsingHelper(newData) async {
+    print('retrieveTransactions - globals.instance - ${globals.instance}');
+    if (globals.instance == 'Local')
+      return await updateUsingHelperSqlLite(newData);
+    else
+      return await updateUsingHelperMySql(newData);
+  }
+
+  Future insertUsingHelper(newData) async {
+    print('retrieveTransactions - globals.instance - ${globals.instance}');
+    if (globals.instance == 'Local')
+      return await insertUsingHelperSqlLite(newData);
+    else
+      return await insertUsingHelperMySql(newData);
+  }
+}
+
+class ImagesTransaction {
+  final String base64, filePath;
+
+  ImagesTransaction({
+    required this.base64,
+    required this.filePath,
+  });
 }

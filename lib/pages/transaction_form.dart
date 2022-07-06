@@ -99,6 +99,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
   void _refrescar() async {
     setState(() {
+      _current = 0;
       imgList.clear();
 
       _agenda = widget.actual.agenda!;
@@ -126,7 +127,6 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
       _isVisible = true;
       if (widget.actual.ejecutar == 0) {
-        print('I N S E R T ...');
         final DateTime now = DateTime.now();
         final DateFormat formatter = DateFormat('yyyy-MM-dd');
         final String formatted = formatter.format(now);
@@ -135,7 +135,6 @@ class _TransactionWidgetState extends State<TransactionWidget> {
       } else {
         if (_seguimiento != 12601) {
           // Solo en peparación se puede cambiar
-          print('U P D A T E ...' + widget.actual.seguimiento.toString());
           _isVisible = false;
         }
         _fecha.text = widget.actual.fecha.toString();
@@ -167,10 +166,9 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
   void _actualizacion() {
     _cambio = true;
-    print('****************** Cambio **************************');
   }
 
-  Widget _setImageView() {
+  Widget _setImageView() {  // Era para probar
     if (_image != null) {
       return Image.file(_image!, width: 200, height: 200);
     } else {
@@ -184,7 +182,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
       if (image != null) {
         setState(() {
           _image = File(image.path);
-          print('Nombre archivo $_image.path.toString()');
+          print('transaction_form _image - ${_image}.path.toString()');
           imgList.add(_image!.path.toString());
           _cambio = true;
         });
@@ -199,7 +197,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
       var image = (await ImagePicker().pickImage(source: ImageSource.gallery));
       if (image != null) {
         setState(() {
-          print('Nombre archivo' + image.path);
+          print('transaction_form _image - ${_image}.path.toString()');
           _image = File(image.path);
           imgList.add(_image!.path.toString());
           _cambio = true;
@@ -210,14 +208,14 @@ class _TransactionWidgetState extends State<TransactionWidget> {
     }
   }
 
-  Future<void> _showMyDialog() async {
+  Future<void> _showMyDialog() async { // String cadena
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-            'Desea eliminar el soporte actual?',
+          title: Text(
+            'Desea eliminar el soporte No. ${(_current + 1).toString()} ?',
             style: TextStyle(color: Colors.black87, fontSize: 15),
           ),
           content: SingleChildScrollView(
@@ -225,7 +223,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
               children: const <Widget>[
                 Text(' '),
                 Text(
-                  'Borrar este soporte',
+                  'Borrar el soporte actual',
                   style: TextStyle(fontSize: 14),
                 ),
               ],
@@ -244,13 +242,19 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             TextButton(
               child: const Text(
                 'ELIMINAR',
-                style: TextStyle(color: Colors.red, fontSize: 14),
+                style: TextStyle(color: Colors.teal, fontSize: 14),
               ),
               onPressed: () {
-                _showToastOk(
+                _showToast(
                     1, 'Soporte No. ${(_current + 1).toString()} eliminado');
-                imgList.removeAt(_current);
-                _cambio = true;
+                setState(() {
+                  if ( (imgList.length > 1) && (imgList.length - 1) == _current ) //Si es la última lo disminuye
+                    _current = _current - 1;
+                  imgList.removeAt(_current);
+
+                  _cambio = true;
+                });
+
                 Navigator.of(context).pop();
               },
             ),
@@ -265,53 +269,61 @@ class _TransactionWidgetState extends State<TransactionWidget> {
     var screenSize = MediaQuery.of(context).size;
 
     //SCR: ejecutamos dentro del widget build para que esta lista se refresque y pueda validar si tiene o no contenido
-    final List<Widget> imageSliders = imgList
-        .map((item) => Container(
-              child: Container(
-                margin: EdgeInsets.all(5.0),
-//      width: 48.0,
-                height: 80.0,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(14.0)),
-                  child: GestureDetector(
-//            Image.network(item, fit: BoxFit.cover, width: 1000.0),
-                    child: Image.file(File(item.toString()),
-                        fit: BoxFit.cover, width: 1000.0),
-                    onDoubleTap: () {
-                      _showToastOk(
-                          1, 'onDoubleTap No. ${(_current + 1).toString()}');
-//            imgList.removeAt(_current);
-//            _showMyDialog();
-                    },
-                    onLongPress: () {
-                      _showToastOk(
-                          1, 'onLongPress No. ${(_current + 1).toString()}');
-//            imgList.removeAt(_current);
-//            _showMyDialog();
-                    },
-                  ),
-                ),
-              ),
-            ))
-        .toList();
+    final List<Widget> imageSliders = imgList.map((item) =>
+      Container(
+        child: Container(
+          margin: EdgeInsets.all(5.0),
+  //      width: 48.0,
+          height: 80.0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(14.0)),
+            child: GestureDetector(
+  //            Image.network(item, fit: BoxFit.cover, width: 1000.0),
+              child: Image.file(File(item.toString()),
+                  fit: BoxFit.cover, width: 1000.0),
+              onDoubleTap: () {
+                _showToast(
+                    1, 'Soporte No. ${(_current + 1).toString()}');
+  //            imgList.removeAt(_current);
+  //            _showMyDialog();
+              },
+              onLongPress: () {
+                _showToast(
+                    1, 'Soporte No. ${(_current + 1).toString()}');
+
+                setState(() {
+  //            imgList.removeAt(_current);
+                });
+  //            _showMyDialog();
+              },
+            ),
+          ),
+        ),
+      )
+    ).toList();
     imgList.length == 0 ? imageSliders.clear() : imageSliders;
 
     void _grabar() async {
-      print('Cambio' + _cambio.toString());
       if (_cambio) {
         String archivo0 = '';
         String archivo1 = '';
         String archivo2 = '';
         String archivo3 = '';
 
-        if (imgList.length > 0) archivo0 = imgList[0].toString();
-        if (imgList.length > 1) archivo1 = imgList[1].toString();
-        if (imgList.length > 2) archivo2 = imgList[2].toString();
-        if (imgList.length > 3) archivo3 = imgList[3].toString();
+        if (imgList.length > 0) {
+          archivo0 = imgList[0].toString();
+        }
+        if (imgList.length > 1) {
+          archivo1 = imgList[1].toString();
+        }
+        if (imgList.length > 2) {
+          archivo2 = imgList[2].toString();
+        }
+        if (imgList.length > 3) {
+          archivo3 = imgList[3].toString();
+        }
 
         if (widget.actual.ejecutar == 0) if (_agenda > 0) {
-          print(
-              '==================================================== INSERT...');
 
           var newData = {
             "fecha": _fecha.text,
@@ -329,21 +341,16 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             "archivo2": archivo2,
             "archivo3": archivo3
           };
+          print('transaction_form _newData - ${newData}');
 
-          print(newData);
-
-          await this.handler.insertUsingHelper(newData); // MySql
-//            await this.handler.insertUsingHelperMySql(newData);  // MySql
+          await this.handler.insertUsingHelper(newData); // kiko
           Vibration.vibrate(duration: 200);
           _cambio = false;
-          _showToastOk(1, 'Transacción adicionada');
+          _showToast(1, 'Transacción adicionada');
         } else {
-          _showToastOk(2, 'Error, completar los campos...');
+          _showToast(2, 'Error, completar los campos...');
         }
         else {
-          print(
-              '==================================================== UPDATE...');
-          // Actualizando
 
           var newData = {
             "ejecutar": widget.actual.ejecutar,
@@ -361,17 +368,15 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             "archivo2": archivo2,
             "archivo3": archivo3
           };
+          print('transaction_form _newData - ${newData}');
 
-          print(newData);
-
-          await this.handler.updateUsingHelper(newData); // MySql
-//          await this.handler.updateUsingHelperMySql(newData);  // MySql
+          await this.handler.updateUsingHelper(newData); // kiko
           Vibration.vibrate(duration: 200);
           _cambio = false;
-          _showToastOk(1, 'Transacción actualizada');
+          _showToast(1, 'Transacción actualizada');
         }
       } else {
-        _showToastOk(2, 'Error, no ha realizado ningun cambio...');
+        _showToast(2, 'Error, no ha realizado ningún cambio...');
       }
     }
 
@@ -460,15 +465,16 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             context,
             MaterialPageRoute(
                 builder: (context) => RecordPage(
-                      dataRegistro: data,
-                    )),
+                  dataRegistro: data,
+                )),
           ) as Data;
           setState(() {
-            print('agenda: ${result.llave}');
-            print('tipoAgenda: ${result.parData0.toString()}');
-            print('tipoTercero: ${result.parData1.toString()}');
-            print('Cuenta: ${result.parData2.toString()}');
-            print('Valor: ${result.parData3.toString()}');
+
+            print('transaction_form agenda: ${result.llave}');
+            print('transaction_form tipoAgenda: ${result.parData0.toString()}');
+            print('transaction_form tipoTercero: ${result.parData1.toString()}');
+            print('transaction_form cuenta: ${result.parData2.toString()}');
+            print('transaction_form valor: ${result.parData3.toString()}');
 
             _cambio = true;
             _agenda = result.llave;
@@ -487,7 +493,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
           });
 
           late Record
-              control; // Averigua descripcion de cuenta (10343), primer presupuesto (10327) OJO puede que no Exista y auxiliar (10320), además cuando es actividad hereda 0,0,0
+          control; // Averigua descripcion de cuenta (10343), primer presupuesto (10327) OJO puede que no Exista y auxiliar (10320), además cuando es actividad hereda 0,0,0
           control = await retrieveBusqueda('registro, descripcion',
               'tabla = 10343 and registro = ' + _cuenta.toString()) as Record;
           setState(() {
@@ -512,9 +518,9 @@ class _TransactionWidgetState extends State<TransactionWidget> {
           });
 
           control = await retrieveBusqueda(
-                  'min(registro) AS registro, descripcion',
-                  'tabla = 10320 and parametro0 = ' + _parAgenda1.toString())
-              as Record;
+              'min(registro) AS registro, descripcion',
+              'tabla = 10320 and parametro0 = ' + _parAgenda1.toString())
+          as Record;
           setState(() {
             if (control.registro != null) {
               _documento = control.registro!;
@@ -563,8 +569,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             context,
             MaterialPageRoute(
                 builder: (context) => RecordPage(
-                      dataRegistro: data,
-                    )),
+                  dataRegistro: data,
+                )),
           ) as Data;
           setState(() {
             _cambio = true;
@@ -611,8 +617,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             context,
             MaterialPageRoute(
                 builder: (context) => RecordPage(
-                      dataRegistro: data,
-                    )),
+                  dataRegistro: data,
+                )),
           ) as Data;
           setState(() {
             _cambio = true;
@@ -678,8 +684,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             context,
             MaterialPageRoute(
                 builder: (context) => RecordPage(
-                      dataRegistro: data,
-                    )),
+                  dataRegistro: data,
+                )),
           ) as Data;
           setState(() {
             _cambio = true;
@@ -743,8 +749,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             context,
             MaterialPageRoute(
                 builder: (context) => RecordPage(
-                      dataRegistro: data,
-                    )),
+                  dataRegistro: data,
+                )),
           ) as Data;
           setState(() {
             _cambio = true;
@@ -783,9 +789,9 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 //            theme: ThemeData.dark(),  //     theme: ThemeData(primarySwatch: Colors.blue),
 //            imageHeader: AssetImage("assets/images/icon.png"),
             description:
-                "Diligencie un formulario por cada transacción, toda la información deberá ser completada",
+            "Diligencie un formulario por cada transacción, toda la información deberá ser completada",
             initialDate:
-                DateTime.parse(_fecha.text.toString()), // String --> Date
+            DateTime.parse(_fecha.text.toString()), // String --> Date
 //            initialDate: DateTime.now(),
 //            firstDate: DateTime(DateTime.now().year - 1),
 //            lastDate: DateTime(DateTime.now().year + 1),
@@ -793,9 +799,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
           ) as DateTime;
           setState(() {
             _cambio = true;
-            print('$newDateTime');
-            _fecha.text =
-                newDateTime.toString().substring(0, 10); // Date --< String
+            print('transaction_form _fecha - ${_fecha}');
+            _fecha.text = newDateTime.toString().substring(0, 10); // Date --< String
           });
         },
       ),
@@ -886,7 +891,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
       ),
     );
 
-    Widget widgetImagen = Container(
+    Widget widgetImagen = Container(// Era para probar
       width: MediaQuery.of(context).size.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -896,7 +901,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
     Widget widgetTransaction = Card(
       margin: EdgeInsets.fromLTRB(5, 5, 5, 5), // L, U, R, D
-      elevation: 8.0,
+      elevation: 1.0,
       child: Column(
         children: [
 //          SizedBox(height: 4.0),
@@ -926,6 +931,9 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
     return Scaffold(
       appBar: AppBar(
+               automaticallyImplyLeading: false,
+          backgroundColor: Color(0xff6A9438),
+          iconTheme: IconThemeData(color: Colors.white),
         title: Text(widget.titulo),
       ),
       body: SingleChildScrollView(
@@ -942,56 +950,58 @@ class _TransactionWidgetState extends State<TransactionWidget> {
             height: 50,
             child: _isVisible && imgList.length > 0
                 ? FloatingActionButton(
-                    heroTag: null,
-                    child: Icon(
-                      Icons.delete_outline_outlined,
-                    ),
-                    backgroundColor: Colors.red.withOpacity(0.65),
-                    onPressed: () async {
-                      _showMyDialog();
-                    })
+                heroTag: null,
+                child: Icon(
+                  Icons.delete_outline_outlined,
+                ),
+                backgroundColor: Colors.red, // withOpacity(0.68),
+                onPressed: () async {
+                  if ( imgList.length > 0 ) //
+                    print('*****************************************');
+                  await _showMyDialog();
+                })
                 : null,
           ),
           SizedBox(
             height: 50,
             child: _isVisible && imgList.length < 4
                 ? FloatingActionButton(
-                    heroTag: null,
-                    child: Icon(
-                      Icons.camera_alt_outlined,
-                    ),
-                    backgroundColor: Colors.black.withOpacity(0.4),
-                    onPressed: () async {
-                      getImageCamera();
-                    })
+                heroTag: null,
+                child: Icon(
+                  Icons.camera_alt_outlined,
+                ),
+                backgroundColor: Colors.lightGreen, // .withOpacity(0.48)
+                onPressed: () async {
+                  getImageCamera();
+                })
                 : null,
           ),
           SizedBox(
             height: 50,
             child: _isVisible && imgList.length < 4
                 ? FloatingActionButton(
-                    heroTag: null,
-                    child: Icon(
-                      Icons.collections_outlined,
-                    ),
-                    backgroundColor: Colors.black.withOpacity(0.5),
-                    onPressed: () async {
-                      getImageGallery();
-                    })
+                heroTag: null,
+                child: Icon(
+                  Icons.collections_outlined,
+                ),
+                backgroundColor: Colors.lightGreen, // .withOpacity(0.48),
+                onPressed: () async {
+                  getImageGallery();
+                })
                 : null,
           ),
           SizedBox(
 //            height:46,
             child: _isVisible
                 ? FloatingActionButton(
-                    heroTag: null,
-                    child: Icon(Icons.cached),
-                    backgroundColor: Colors.teal.withOpacity(0.8),
-                    onPressed: () async {
-                      _grabar();
+                heroTag: null,
+                child: Icon(Icons.cached),
+                backgroundColor: Colors.teal, // .withOpacity(0.68)
+                onPressed: () async {
+                  _grabar();
 //                snapshot = await this.handler.retrieveTransaction(widget.queryText, widget.actual.ejecutar.toString(), 'P');
 //                _refrescar();
-                    })
+                })
                 : null,
           ),
         ],
@@ -1000,7 +1010,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
   }
 }
 
-void _showToastOk(int presentacion, String mensaje) {
+void _showToast(int presentacion, String mensaje) {
   switch (presentacion) {
     case 1:
       Fluttertoast.showToast(
@@ -1008,7 +1018,7 @@ void _showToastOk(int presentacion, String mensaje) {
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 2,
-          backgroundColor: Colors.grey.shade900.withOpacity(0.6),
+          backgroundColor: Colors.black.withOpacity(0.48),
           textColor: Colors.white,
           fontSize: 16.0);
       break;
@@ -1018,12 +1028,12 @@ void _showToastOk(int presentacion, String mensaje) {
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 2,
-          backgroundColor: Colors.red.withOpacity(0.65),
+          backgroundColor: Colors.red.withOpacity(0.68),
           textColor: Colors.white,
           fontSize: 16.0);
       break;
     default:
-      print("Since we don't know your favorite flavor, here's a random one");
+      print('Since we don´t know your favorite flavor, here´s a random one');
   }
 }
 
@@ -1038,13 +1048,13 @@ class Data {
   String parData3;
   Data(
       {required this.titulo,
-      required this.condicion,
-      required this.llave,
-      required this.descripcion,
-      required this.parData0,
-      required this.parData1,
-      required this.parData2,
-      required this.parData3});
+        required this.condicion,
+        required this.llave,
+        required this.descripcion,
+        required this.parData0,
+        required this.parData1,
+        required this.parData2,
+        required this.parData3});
 }
 
 class DataDescripcion {

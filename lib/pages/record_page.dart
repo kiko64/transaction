@@ -25,6 +25,9 @@ class _RecordPageState extends State<RecordPage> {
 
   AppBar buildAppBar(BuildContext context) {
     return new AppBar(
+             automaticallyImplyLeading: false,
+          backgroundColor: Color(0xff6A9438),
+          iconTheme: IconThemeData(color: Colors.white),
         title: Text(widget.dataRegistro.titulo),
         centerTitle: true,
         actions: [searchBar.getSearchAction(context)]);
@@ -75,7 +78,7 @@ class _RecordPageState extends State<RecordPage> {
     return Scaffold(
       appBar: searchBar.build(context),
       body: FutureBuilder(
-        future: this.handler.retrieveRegistros( widget.dataRegistro.condicion, _queryText ), // cambio
+        future: this.handler.retrieveRecords( widget.dataRegistro.condicion, _queryText ), // cambio
         builder: (BuildContext context, AsyncSnapshot<List<Record>> snapshot) { // cambio
           if (snapshot.hasData) {
             return ListView.builder(
@@ -99,9 +102,9 @@ class _RecordPageState extends State<RecordPage> {
                         onTap: () {
                           setState(() {
 //                            widget.dataRegistro.llave = snapshot.data![index].registro!;
-                            print('widget.data.actual *******************************************: '
-                                'llave: ${snapshot.data![index].registro!}'
-                                ' valor: ${snapshot.data![index].parametro3.toString()}'
+                            print('record_page.dart: '
+                                'Llave - ${snapshot.data![index].registro!}, '
+                                'valor - ${snapshot.data![index].parametro3.toString()}'
                             );
                             Navigator.pop(context, Data(
                                 titulo:     '',

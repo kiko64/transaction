@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 
 class MySearchBarScreen extends StatefulWidget {
-
   @override
   _MySearchBarScreenState createState() => _MySearchBarScreenState();
 }
 
-final soccerPlayers = ['Cristiano Ronaldo','Lionel Messi','Neymar Jr.','Kevin De Brune','Robert Lewandowski','Kylian Mbappe','Virgil van Dijk','Sadio Mane','Mohamed Salah'];
+final soccerPlayers = [
+  'Cristiano Ronaldo',
+  'Lionel Messi',
+  'Neymar Jr.',
+  'Kevin De Brune',
+  'Robert Lewandowski',
+  'Kylian Mbappe',
+  'Virgil van Dijk',
+  'Sadio Mane',
+  'Mohamed Salah'
+];
 
 class _MySearchBarScreenState extends State<MySearchBarScreen> {
-
   int actual = 1;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xff6A9438),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             onPressed: () {
               showSearch(
-                context: context, delegate: PlayerSearch(soccerPlayers));
+                  context: context, delegate: PlayerSearch(soccerPlayers));
             },
             icon: Icon(Icons.search),
           )
@@ -31,30 +42,26 @@ class _MySearchBarScreenState extends State<MySearchBarScreen> {
       body: ListView.builder(
           itemCount: soccerPlayers.length,
           itemBuilder: (context, position) => ListTile(
-            title: Text(soccerPlayers[position]),
-            trailing: Icon(
-              position == actual
-                  ? Icons.check_circle
-                  : Icons.panorama_fish_eye, // panorama_fish_eye, Icons.loop
-              color: position == actual
-                  ? Colors.teal
-                  : null,
-            ),
-            onTap: () {
-              setState(() {
-                actual = position;
-                print('novedad: ${actual}');
+              title: Text(soccerPlayers[position]),
+              trailing: Icon(
+                position == actual
+                    ? Icons.check_circle
+                    : Icons.panorama_fish_eye, // panorama_fish_eye, Icons.loop
+                color: position == actual ? Colors.teal : null,
+              ),
+              onTap: () {
+                setState(() {
+                  actual = position;
+                  print('novedad: ${actual}');
 
 //                Navigator.pop(context); // Devolverme a la forma de transacción
-              });
-            }
-          )),
+                });
+              })),
     );
   }
 }
 
-class PlayerSearch extends SearchDelegate{
-
+class PlayerSearch extends SearchDelegate {
   List<String> listPlayers;
   late String selectedResult;
   PlayerSearch(this.listPlayers);
@@ -64,7 +71,7 @@ class PlayerSearch extends SearchDelegate{
     return <Widget>[
       IconButton(
           icon: Icon(Icons.close),
-          onPressed: (){
+          onPressed: () {
             query = "";
           })
     ];
@@ -74,7 +81,7 @@ class PlayerSearch extends SearchDelegate{
   Widget buildLeading(BuildContext context) {
     return IconButton(
         icon: Icon(Icons.arrow_back),
-        onPressed: (){
+        onPressed: () {
           Navigator.pop(context);
         });
   }
@@ -91,16 +98,16 @@ class PlayerSearch extends SearchDelegate{
   @override
   Widget buildSuggestions(BuildContext context) {
     List<String> suggestedSoccerPlayers = [];
-    query.isEmpty ? suggestedSoccerPlayers = listPlayers
+    query.isEmpty
+        ? suggestedSoccerPlayers = listPlayers
         : suggestedSoccerPlayers.addAll(listPlayers.where(
-          (element) => element.toLowerCase().contains(query.toLowerCase()),
-    ));
+            (element) => element.toLowerCase().contains(query.toLowerCase()),
+          ));
 
     return ListView.builder(
         itemCount: suggestedSoccerPlayers.length,
         itemBuilder: (context, position) => ListTile(
-          title: Text(suggestedSoccerPlayers[position]),
-        ));
+              title: Text(suggestedSoccerPlayers[position]),
+            ));
   }
-
 }
